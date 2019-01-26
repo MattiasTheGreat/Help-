@@ -7,27 +7,32 @@
 using namespace std;
 
 bool isPlaceholder(string& input) {
-	if (input.size() > 0) {
-		return input[0] == '<';
+	if (input.size() > 0 ) {
+		return input[0] == '<';// && input[input.size() - 2] == '>';
 
 	}
 	return false;
 }
 
 bool isAlias(string placeholder, string other, map<string, string>& placeholders) {
-	if (placeholder == other)
+	if (placeholder == other) {
+		//cout << "found an alias" << endl;
 		return true;
+	}
 	string alias = placeholders.at(placeholder);
 	while (alias != placeholder) {
-		if (alias == other)
+		if (alias == other) {
+			//cout << "found an alias" << endl;
 			return true;
+
+		}
 		alias = placeholders.at(alias);
 	}
+	//cout << other << " was not an alias for " << placeholder << endl;
 	return false;
 }
 
 bool addPlaceholder(string placeholder, string equals, map<string, string>& placeholders) {
-	//cout << "call to addplaceholder func " << placeholder << " " << equals << endl;
 
 	if (isPlaceholder(equals)) {//Both are placeholders
 		//cout << "Both are placeholders: " << placeholder << " " << equals << endl;
@@ -42,13 +47,16 @@ bool addPlaceholder(string placeholder, string equals, map<string, string>& plac
 					string old1 = placeholders.at(placeholder);
 					string old2 = placeholders.at(equals);
 
+					//cout << "relations were before:\n placeholder: " << placeholders.at(placeholder) << "\n equals: " << placeholders.at(equals) << endl;
+
 					placeholders[equals] = old1;
 					placeholders[placeholder] = old2;
+					//cout << "relations are after:\n placeholder: " << placeholders.at(placeholder) << "\n equals: " << placeholders.at(equals) << endl;
 					return true;
 				}
 			}
 			else {//one of them is insterted before as a placeholder-------
-				//cout << "one is inserted placeholders: " << placeholder << " " << equals << endl;
+				//cout << "one is inserted placeholder: " << placeholder << " " << equals << endl;
 
 				string old = placeholders.at(placeholder);
 				if (isPlaceholder(old)) {
@@ -81,6 +89,7 @@ bool addPlaceholder(string placeholder, string equals, map<string, string>& plac
 			//cout << "Placeholder was inserted before " << placeholder << " " << equals << endl;
 
 			string old = placeholders.at(placeholder);
+			//cout << "placeholder " << placeholder << " updated to " << equals << endl;
 			placeholders[placeholder] = equals;
 			if (!isPlaceholder(old)) {
 				if (old != equals) {
@@ -91,9 +100,9 @@ bool addPlaceholder(string placeholder, string equals, map<string, string>& plac
 				}
 			}
 			else {
-				//cout << "placeholder did not hold a placeholder: " << placeholder << " " << equals << endl;
+				//cout << "placeholder held a placeholder: " << placeholder << " " << equals << endl;
 
-				return addPlaceholder(placeholder, equals, placeholders);
+				return addPlaceholder(old, equals, placeholders);
 			}
 		}
 		else {
@@ -131,11 +140,16 @@ string validate(string& first, string& second, map<string, string>& placeholders
 		string second_word = cutFirstWord(second);
 
 		if (isPlaceholder(first_word)) {
+			first_word += "1";
+			if (isPlaceholder(second_word)) {
+				second_word += "2";
+			}
 			if(!addPlaceholder(first_word, second_word, placeholders))
 				return "-";
 		}
 		else {
 			if (isPlaceholder(second_word)) {
+				second_word += "2";
 				if(!addPlaceholder(second_word, first_word, placeholders))
 					return "-";
 			}
@@ -146,6 +160,7 @@ string validate(string& first, string& second, map<string, string>& placeholders
 		}
 
 		string result = validate(first, second, placeholders);
+		//cout << result << endl;
 
 		if (result != "-") {
 			if (isPlaceholder(first_word)) {
@@ -153,10 +168,14 @@ string validate(string& first, string& second, map<string, string>& placeholders
 				if (!isPlaceholder(word)) {
 					return word + " " + result;
 				}
-				else
+				else {
 					return "-";
-			}else
+				}
+			}
+			else {
+				
 				return first_word + " " + result;
+			}
 		}
 		else
 			return "-";
